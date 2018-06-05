@@ -190,12 +190,16 @@ class TWSConnection(EClientSocket, EWrapper):
 
         self.symbol_to_ticker_id[symbol] = ticker_id
         self.ticker_id_to_symbol[ticker_id] = symbol
-
-        tick_list = "233"  # RTVolume, return tick_type == 48
+        
+        # INDEX tickers cannot be requested with market data. The data can, 
+        # however, be requested with realtimeBars. This change will make
+        # sure we can request data from INDEX tickers like SPX, VIX, etc.
         if contract.m_secType == 'IND':
             self.reqRealTimeBars( ticker_id, contract, 60, 'TRADES', True)
         else:
+            tick_list = "233"  # RTVolume, return tick_type == 48
             self.reqMktData(ticker_id, contract, tick_list, False)
+            sleep(11)
 
     def _process_tick(self, ticker_id, tick_type, value):
         try:
@@ -459,7 +463,7 @@ class TWSConnection(EClientSocket, EWrapper):
     def marketDataType(self, req_id, market_data_type):
         log_message('marketDataType', vars())
 
-    def realtimeBar(self, req_id, time, open, high, low, close, volume, wap,
+    def realtimeBar(self, req_id, time, open_, high, low, close, volume, wap,
                     count):
         value = (";".join([str(close), str(count), str(time), str(volume),
                            str(wap),"true"]))
