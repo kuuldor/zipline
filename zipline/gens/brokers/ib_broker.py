@@ -192,7 +192,10 @@ class TWSConnection(EClientSocket, EWrapper):
         self.ticker_id_to_symbol[ticker_id] = symbol
 
         tick_list = "233"  # RTVolume, return tick_type == 48
-        self.reqMktData(ticker_id, contract, tick_list, False)
+        if contract.m_secType == 'IND':
+            self.reqRealTimeBars( ticker_id, contract, 60, 'TRADES', True)
+        else:
+            self.reqMktData(ticker_id, contract, tick_list, False)
 
     def _process_tick(self, ticker_id, tick_type, value):
         try:
@@ -456,9 +459,11 @@ class TWSConnection(EClientSocket, EWrapper):
     def marketDataType(self, req_id, market_data_type):
         log_message('marketDataType', vars())
 
-    def realtimeBar(self, req_id, time, open_, high, low, close, volume, wap,
+    def realtimeBar(self, req_id, time, open, high, low, close, volume, wap,
                     count):
-        log_message('realtimeBar', vars())
+        value = (";".join([str(close), str(count), str(time), str(volume),
+                           str(wap),"true"]))
+        self._process_tick(req_id, tick_type=48, value=value)
 
     def scannerDataEnd(self, req_id):
         log_message('scannerDataEnd', vars())
